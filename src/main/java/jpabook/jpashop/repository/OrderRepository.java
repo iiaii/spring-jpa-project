@@ -1,5 +1,6 @@
 package jpabook.jpashop.repository;
 
+import jpabook.jpashop.domain.Member;
 import jpabook.jpashop.domain.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -8,7 +9,6 @@ import org.springframework.util.StringUtils;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
-import java.lang.reflect.Member;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +26,7 @@ public class OrderRepository {
         return em.find(Order.class, id);
     }
 
-    public List<Order> findAll(OrderSearch orderSearch) {
+    public List<Order> findAllByCriteria(OrderSearch orderSearch) {
 //        return em.createQuery("select o from Order o join o.member m" +
 //                " where  o.status = :status" +
 //                " and m.name like :name", Order.class)
@@ -55,9 +55,35 @@ public class OrderRepository {
         cq.where(cb.and(criteria.toArray(new Predicate[criteria.size()])));
         TypedQuery<Order> query = em.createQuery(cq).setMaxResults(1000); //최대 1000건
         return query.getResultList();
-
-
     }
+
+//    public List<Order> findAll(OrderSearch orderSearch) {
+//        JPAQueryFactory query = new JPAQueryFactory(em);
+//        QOrder order = QOrder.order;
+//        QMember member = QMember.member;
+//
+//        return query
+//                .select(order)
+//                .from(order)
+//                .join(order.member, member)
+//                .where(statusEq(orderSearch.getOrderStatus()), nameLike(orderSearch.getMemberName()))
+//                .limit(1000)
+//                .fetch();
+//    }
+//
+//    private BooleanExpression nameLike(String memberName) {
+//        if(!StringUtils.hasText(memberName)) {
+//            return null;
+//        }
+//        return QMember.member.name.like(memberName);
+//    }
+//
+//    private BooleanExpression statusEq(OrderStatus statusCond) {
+//        if(statusCond == null) {
+//            return null;
+//        }
+//        return QOrder.order.status.eq(statusCond);
+//    }
 
     public List<Order> findAllWithMemberDelivery() {
         return em.createQuery(
@@ -66,4 +92,27 @@ public class OrderRepository {
                         " join fetch o.delivery d", Order.class
         ).getResultList();
     }
+
+    // ToOne 관계는 fetch join 하고 application.yml에서 hibernate.default_batch_fetch_size를 적용해서 해결 (in 쿼리로 가져옴)
+    public List<Order> findAllWithMemberDelivery(int offset, int limit) {
+        return em.createQuery(
+                "select o from Order o" +
+                        " join fetch o.member m" +
+                        " join fetch o.delivery d", Order.class)
+                .setFirstResult(offset)
+                .setMaxResults(limit)
+                .getResultList();
+    }
+
+    public List<Order> findAllWithItem() {
+        return em.createQuery(
+                "select distinct o from Order o" +  // distinct -> JPA 자체에서 id 가 같으면 중복제거
+                        " join fetch o.member m" +
+                        " join fetch o.delivery d" +
+                        " join fetch o.orderItems oi" +
+                        " join fetch oi.item i", Order.class)
+                .getResultList();
+    }
+
+
 }

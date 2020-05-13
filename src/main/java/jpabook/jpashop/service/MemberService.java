@@ -39,6 +39,7 @@ public class MemberService {
     }
 
     private void validateDuplicateMember(Member member) {
+
         // 실무에서는 멀티 스레드 환경을 고려해서 (동시에 같은 이름으로 가입하는 경우) DB의 멤버의 name을 유니크 제약 조건으로 잡아주어야 함
         List<Member> findMembers = memberRepository.findByName(member.getName());
         if(!findMembers.isEmpty()) {
@@ -53,12 +54,12 @@ public class MemberService {
     }
 
     public Member findOne(Long memberId) {
-        return memberRepository.findOne(memberId);
+        return memberRepository.findById(memberId).get();
     }
 
     @Transactional
     public void update(Long id, String name) {
-        Member member = memberRepository.findOne(id);
+        Member member = memberRepository.findById(id).get();
         member.setName(name);
     }
 }

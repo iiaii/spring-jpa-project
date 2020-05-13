@@ -31,7 +31,7 @@ public class OrderService {
     public Long order(Long memberId, Long itemId, int count) {
 
         // 엔티티 조회
-        Member member = memberRepository.findOne(memberId);
+        Member member = memberRepository.findById(memberId).get();
         Item item = itemRepository.findOne(itemId);
 
         // 배송정보 생성 - 따로 Persist 안해도 됨 (Order 만 관리하기 때문에)
@@ -66,6 +66,7 @@ public class OrderService {
      * 주문 검색
      */
     public List<Order> findOrders(OrderSearch orderSearch) {
-        return orderRepository.findAll(orderSearch);
+        return orderRepository.findAllByCriteria(orderSearch);
+//        return orderRepository.findAll(orderSearch);
     }
 }

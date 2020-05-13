@@ -40,7 +40,7 @@ public class MemberServiceTest {
 
         // then
         // em.flush();
-        assertEquals(member, memberRepository.findOne(saveId));
+        assertEquals(member, memberRepository.findById(saveId));
     }
 
     @Test(expected = IllegalStateException.class) // try catch 문 지저분하니깐 이걸로 해결
